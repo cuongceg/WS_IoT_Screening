@@ -50,6 +50,16 @@ wss.on("connection", (ws, req) => {
 
           current.content = JSON.stringify(combinedArray);
           console.log("Content updated for user:", userId, current.content);
+
+          wss.clients.forEach((client) => {
+            if (client !== ws && client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify({
+                type: "content",
+                content: data.content
+              }));
+            }
+          });
+          console.log("Content sent to other clients:", data.content);
         } catch (err) {
           console.error('Failed to parse content:', err);
         }
