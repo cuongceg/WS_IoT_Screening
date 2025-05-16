@@ -5,6 +5,7 @@ const WebSocket = require("ws");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const connectDB = require('./config/db');
+const logger = require("./logger");
 
 // Load environment variables
 dotenv.config();
@@ -34,9 +35,9 @@ wss.on("connection", (ws, req) => {
             content:"[]",
             meta: data.meta || {}
           });
-          console.log("User ID set: and data is ", userId, data.meta);
+          logger.info("User ID set: and data is "+userId+ data.meta);
         }catch(err){
-          console.error("Error parsing user ID:", err.message);
+          logger.error("Error parsing user ID:", err.message);
         }
 
       } else if (data.type === "content" && userId) {
@@ -59,13 +60,13 @@ wss.on("connection", (ws, req) => {
               }));
             }
           });
-          console.log("Content sent to other clients:", data.content);
+          logger.info("Content sent to other clients:", data.content);
         } catch (err) {
-          console.error('Failed to parse content:', err);
+          logger.error('Failed to parse content:', err);
         }
       }
     } catch (err) {
-      console.error("Message error:", err.message);
+      logger.error("Message error:", err.message);
     }
   });
 
@@ -76,11 +77,11 @@ wss.on("connection", (ws, req) => {
       try {
         delta = JSON.parse(content); // Parse the Delta string
       } catch (err) {
-        throw new Error("Invalid Delta format: " + err.message);
+        logger.error("Invalid Delta format: " + err.message);
       }
 
       if(!Array.isArray(delta) || delta.length === 0){ 
-        throw new Error("Delta is not an array");
+        logger.error("Delta is not an array");
       }
 
       const last = delta[delta.length - 1];
@@ -101,9 +102,9 @@ wss.on("connection", (ws, req) => {
           userId: userId,
         });
         await lecture.save();
-        console.log("Lecture saved successfully.");
+        logger.info("Lecture saved successfully.");
       } catch (err) {
-        console.error("Error saving lecture:", err.message);
+        logger.error("Error saving lecture:", err.message);
       }
       userBuffer.delete(userId);
     }
